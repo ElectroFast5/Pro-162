@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Shooting Game in Virtual Reality</title>
+    <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>   
+    <script src="https://cdn.jsdelivr.net/gh/n5ro/aframe-physics-system@v4.0.1/dist/aframe-physics-system.min.js"></script>
+    <script src="https://unpkg.com/aframe-physics-extras@0.1.2/dist/aframe-physics-extras.min.js"></script>
+    <script>
+      AFRAME.registerComponent("balls", {
+        init:  function() {
+            this.shootBall()
+        },
+        shootBall: function() {
+          window.addEventListener("keydown", (x)=>{
+            if(x.key=="z") {
+              var ball = document.createElement("a-entity")
+              ball.setAttribute("geometry",{primitive: "sphere", radius: 0.5})
+              ball.setAttribute("material",{color: "silver"})
+              // 'cam' refers to the camera
+              var cam = document.querySelector("#camera")
+              // 'pos' refers to 'position'(of the camera)
+              pos = cam.getAttribute("position")
+              ball.setAttribute("position",{x:pos.x, y:pos.y, z:pos.z})
+
+              var camera = cam.object3D
+              // Get the camera direction as: three.js vector
+              var direction = new THREE.Vector3()
+              camera.getWorldDirection(direction)
+              ball.setAttribute("velocity", direction.multiplyScalar(-10))
+              ball.setAttribute("dynamic-body", {mass:"5"})
+              ball.addEventListener("collide", this.removeBall)
+              var scene = document.querySelector("#scene")
+              scene.appendChild(ball)
+            }
+          })
+        },
+
+        removeBall: function (e) {
+          //Original entity (ball)
+          console.log(e.detail.target.el);
+
+          //Other entity, which ball touched.
+          console.log(e.detail.body.el);
+
+          //ball element
+          var element = e.detail.target.el
+
+          //element which is hit
+          var elementHit = e.detail.body.el
+
+          if (elementHit.id.includes("box")) {
+              //set material attribute
+              elementHit.setAttribute("material", {opacity: 0.849, transparent: true})
+
+              //impulse and point vector
+              var impulse = new CANNON.Vector3(-2,2,1)
+              var worldPoint = new CANNON.Vector3().copy(elementHit.getAttribute("position"))
+              elementHit.body.applyImpulse(impulse, worldPoint)
+
+              //remove event listener
+              element.removeEventListener("collide", this.shoot)
+              
+              //remove the balls from the scene
+            var scene = document.querySelector("#scene")
+            scene.removeChild(element)
+            
+          }
+        },
+      })
+    </script>
+    
+  </head>
+  <body>
+    <a-scene id="scene">
+      <a-sky material="color: black"></a-sky>
+
+      <!--Assets-->
+      <a-assets>
+        <a-asset-item id="bowler"></a-asset-item>
+      </a-assets>
+      
+      <!--Light-->
+      <a-entity light="type: ambient; color: yellow; intensity:0.5"></a-entity>
+
+      <!--Camera and Cursor-->
+      <a-entity
+        id="camera"
+        camera
+        position="0 1.6 0"
+        wasd-controls
+        look-controls="pointerLockEnabled: false"        
+      >
+        
+        <a-cursor color="red"></a-cursor>        
+      </a-entity>
+
+      <!--balls-->
+      <a-entity balls></a-entity>
+
+      <!--Ground-->
+      <a-plane
+        id="ground"
+        repeat="5 5"
+        position="0 1 0"
+        rotation="-90 0 0"
+        height="200"
+        width="200"
+        color="brown"
+        static-body
+        visible="true"
+      >
+      </a-plane>
+
+      <!--Pins-->
+
+      <!--Back Row-->
+      <a-box position="4 1.5 -14" color="white" depth="0.4" height="2" width="0.4"  dynamic-body></a-box>
+      <a-box position="2 1.5 -14" color="white" depth="0.4" height="2" width="0.4"  dynamic-body></a-box>
+      <a-box position="0 1.5 -14" color="white" depth="0.4" height="2" width="0.4"  dynamic-body></a-box>
+      <a-box position="-2 1.5 -14" color="white" depth="0.4" height="2" width="0.4"  dynamic-body></a-box>
+      <a-box position="-4 1.5 -14" color="white" depth="0.4" height="2" width="0.4"  dynamic-body></a-box>
+      <!--<a-box position="0 1.5 -14" color="white" depth="0.4" height="2" width="0.4"  dynamic-body></a-box>-->
+
+      <!--4th Row-->
+      <a-box position="-3 1.5 -12" color="white" depth="0.4" height="2" width="0.4"  dynamic-body></a-box>
+      <a-box position="-1 1.5 -12" color="white" depth="0.4" height="2" width="0.4"  dynamic-body></a-box>
+      <a-box position="1 1.5 -12" color="white" depth="0.4" height="2" width="0.4"  dynamic-body></a-box>
+      <a-box position="3 1.5 -12" color="white" depth="0.4" height="2" width="0.4"  dynamic-body></a-box>
+
+      <!--3rd Row-->
+      <a-box position="-2 1.5 -10" color="white" depth="0.4" height="2" width="0.4"  dynamic-body></a-box>
+      <a-box position="0 1.5 -10" color="white" depth="0.4" height="2" width="0.4"  dynamic-body></a-box>
+      <a-box position="2 1.5 -10" color="white" depth="0.4" height="2" width="0.4"  dynamic-body></a-box>
+
+      <!--2nd Row-->
+      <a-box position="-1 1.5 -8" color="white" depth="0.4" height="2" width="0.4" dynamic-body></a-box>
+      <a-box position="1 1.5 -8" color="white" depth="0.4" height="2" width="0.4" dynamic-body></a-box>
+
+      <!--Front Pin-->
+      <a-box position="0 1.5 -6" color="white" depth="0.4" height="2" width="0.4" dynamic-body></a-box>
+    </a-scene>
+  </body>
+</html>
